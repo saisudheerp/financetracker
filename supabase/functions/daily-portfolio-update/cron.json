@@ -1,0 +1,4 @@
+{
+  "schedule": "0 10 * * 1-5",
+  "description": "Update portfolio prices daily at 3:30 PM IST (10:00 AM UTC) on weekdays"
+}
