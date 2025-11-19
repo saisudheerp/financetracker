@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { useToast } from "./context/ToastContext";
 import { supabase } from "./supabaseClient";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Lazy load all page components
 const Login = lazy(() => import("./pages/Login"));
@@ -130,6 +131,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <AppContent />
+        <SpeedInsights />
       </AuthProvider>
     </ThemeProvider>
   );
