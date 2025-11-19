@@ -1,0 +1,4 @@
+{
+  "schedule": "0 * * * *",
+  "description": "Process recurring transactions every hour"
+}

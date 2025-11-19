@@ -7,10 +7,14 @@
 // NOTE: VS Code may show import errors for Deno modules.
 // These are expected and will work correctly when deployed to Supabase.
 // The function uses Deno runtime, not Node.js.
+// To fix in VS Code: Install the "Deno" extension and enable it for this workspace.
 
-/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
+// @ts-ignore - Deno runtime types
+/// <reference lib="deno.ns" />
 
+// @ts-ignore - Deno imports work at runtime
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @ts-ignore - Deno imports work at runtime
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
 const corsHeaders = {
@@ -124,7 +128,9 @@ serve(async (req: Request) => {
   }
 
   try {
+    // @ts-ignore - Deno global available in Edge Function runtime
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    // @ts-ignore - Deno global available in Edge Function runtime
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 

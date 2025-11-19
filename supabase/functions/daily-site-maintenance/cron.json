@@ -1,0 +1,4 @@
+{
+  "schedule": "30 18 * * *",
+  "description": "Run daily maintenance at midnight IST (18:30 UTC)"
+}
