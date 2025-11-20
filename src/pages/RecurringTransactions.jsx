@@ -25,6 +25,50 @@ export default function RecurringTransactions({ onNavigate }) {
   useEffect(() => {
     fetchRecurringTransactions();
     fetchCategories();
+
+    // Set up real-time subscription for recurring transactions
+    const recurringSubscription = supabase
+      .channel("recurring_transactions_channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "recurring_transactions",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("Recurring transaction change detected:", payload);
+          fetchRecurringTransactions();
+        }
+      )
+      .subscribe();
+
+    // Set up real-time subscription for transactions table (to see when recurring transactions are processed)
+    const transactionsSubscription = supabase
+      .channel("recurring_trans_monitor")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "transactions",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("New transaction created:", payload);
+          // Optionally show a toast notification for auto-generated transactions
+          if (payload.new?.description?.includes("(Auto-generated)")) {
+            console.log("Auto-generated transaction created from recurring rule");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(recurringSubscription);
+      supabase.removeChannel(transactionsSubscription);
+    };
   }, [user]);
 
   const fetchRecurringTransactions = async () => {

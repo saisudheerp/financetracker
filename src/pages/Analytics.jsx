@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -89,8 +89,8 @@ const Analytics = ({ onNavigate }) => {
     }
   };
 
-  // Filter transactions by period
-  const getFilteredTransactions = () => {
+  // Filter transactions by period - memoized to recalculate when dependencies change
+  const filteredTransactions = useMemo(() => {
     const now = new Date();
     let startDate = new Date();
 
@@ -113,9 +113,7 @@ const Analytics = ({ onNavigate }) => {
     return transactions.filter(
       (t) => new Date(t.transaction_date) >= startDate
     );
-  };
-
-  const filteredTransactions = getFilteredTransactions();
+  }, [transactions, selectedPeriod]);
 
   // Fetch savings for the filtered period
   useEffect(() => {
@@ -166,10 +164,10 @@ const Analytics = ({ onNavigate }) => {
     if (user && filteredTransactions.length > 0) {
       fetchSavings();
     }
-  }, [filteredTransactions, user]);
+  }, [filteredTransactions, user, selectedPeriod]); // Added selectedPeriod dependency
 
-  // Monthly spending data for bar chart
-  const getMonthlyData = () => {
+  // Monthly spending data for bar chart - memoized
+  const monthlyData = useMemo(() => {
     const monthlyData = {};
 
     filteredTransactions.forEach((transaction) => {
@@ -201,10 +199,10 @@ const Analytics = ({ onNavigate }) => {
       .sort((a, b) => a.date - b.date)
       .slice(-6) // Last 6 months
       .map(({ month, income, expense }) => ({ month, income, expense }));
-  };
+  }, [filteredTransactions]);
 
-  // Category-wise spending for pie chart
-  const getCategoryData = () => {
+  // Category-wise spending for pie chart - memoized
+  const categoryData = useMemo(() => {
     const expenses = filteredTransactions.filter((t) => t.type === "expense");
     const categoryTotals = {};
 
@@ -220,29 +218,30 @@ const Analytics = ({ onNavigate }) => {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10); // Top 10 categories
-  };
+  }, [filteredTransactions]);
 
-  const monthlyData = getMonthlyData();
-  const categoryData = getCategoryData();
+  // Calculate statistics - memoized
+  const { totalIncome, totalExpenses, averageIncome, averageExpense } = useMemo(() => {
+    const totalIncome = filteredTransactions
+      .filter((t) => t.type === "income")
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-  // Calculate statistics
-  const totalIncome = filteredTransactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    const totalExpenses = filteredTransactions
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-  const totalExpenses = filteredTransactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    const averageIncome =
+      monthlyData.length > 0
+        ? monthlyData.reduce((sum, m) => sum + m.income, 0) / monthlyData.length
+        : 0;
 
-  const averageIncome =
-    monthlyData.length > 0
-      ? monthlyData.reduce((sum, m) => sum + m.income, 0) / monthlyData.length
-      : 0;
+    const averageExpense =
+      monthlyData.length > 0
+        ? monthlyData.reduce((sum, m) => sum + m.expense, 0) / monthlyData.length
+        : 0;
 
-  const averageExpense =
-    monthlyData.length > 0
-      ? monthlyData.reduce((sum, m) => sum + m.expense, 0) / monthlyData.length
-      : 0;
+    return { totalIncome, totalExpenses, averageIncome, averageExpense };
+  }, [filteredTransactions, monthlyData]);
 
   // Custom tooltip for charts
   const CustomTooltip = ({ active, payload, label }) => {

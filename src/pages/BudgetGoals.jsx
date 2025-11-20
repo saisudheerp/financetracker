@@ -43,8 +43,27 @@ export default function BudgetGoals({ onNavigate }) {
       )
       .subscribe();
 
+    // Set up real-time subscription for budget_goals
+    const budgetsSubscription = supabase
+      .channel("budget-goals-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "budget_goals",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          // Refetch budgets when any change occurs
+          fetchBudgets();
+        }
+      )
+      .subscribe();
+
     return () => {
-      transactionsSubscription.unsubscribe();
+      supabase.removeChannel(transactionsSubscription);
+      supabase.removeChannel(budgetsSubscription);
     };
   }, [user, selectedPeriod]);
 
