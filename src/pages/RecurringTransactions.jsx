@@ -5,6 +5,7 @@ import { formatCurrency } from "../utils/currencyUtils";
 import Navbar from "../components/Navbar";
 import { Repeat, TrendingUp, TrendingDown, FileText } from "lucide-react";
 import { renderIcon } from "../utils/iconMapper.jsx";
+import { notifyRecurringTransaction } from "../utils/notificationUtils";
 
 export default function RecurringTransactions({ onNavigate }) {
   const { user } = useAuth();
@@ -57,9 +58,21 @@ export default function RecurringTransactions({ onNavigate }) {
         },
         (payload) => {
           console.log("New transaction created:", payload);
-          // Optionally show a toast notification for auto-generated transactions
+          // Show notification for auto-generated transactions
           if (payload.new?.description?.includes("(Auto-generated)")) {
-            console.log("Auto-generated transaction created from recurring rule");
+            console.log(
+              "Auto-generated transaction created from recurring rule"
+            );
+            // Extract amount and type from the new transaction
+            const description = payload.new.description.replace(
+              " (Auto-generated)",
+              ""
+            );
+            notifyRecurringTransaction(
+              description,
+              payload.new.amount,
+              payload.new.type
+            );
           }
         }
       )

@@ -105,46 +105,59 @@ serve(async (req: Request) => {
 
     for (const recurring of recurringTransactions as RecurringTransaction[]) {
       try {
-        // Create the actual transaction
-        const { error: insertError } = await supabase.from("transactions").insert({
-          user_id: recurring.user_id,
-          category_id: recurring.category_id,
-          amount: recurring.amount,
-          type: recurring.type,
-          description: `${recurring.description} (Auto-generated)`,
-          date: todayIST,
-          payment_method: "Auto", // Mark as automatic
-          notes: `Automatically created from recurring transaction`,
-        });
+        // Calculate how many missed occurrences we need to create
+        let currentDueDate = new Date(recurring.next_due_date);
+        const today = new Date(todayIST);
+        const transactionsToCreate = [];
 
-        if (insertError) {
-          console.error(`❌ Failed to create transaction for ${recurring.description}:`, insertError);
-          failCount++;
-          continue;
+        // Create transactions for all missed dates up to today
+        while (currentDueDate <= today) {
+          transactionsToCreate.push({
+            user_id: recurring.user_id,
+            category_id: recurring.category_id,
+            amount: recurring.amount,
+            type: recurring.type,
+            description: `${recurring.description} (Auto-generated)`,
+            transaction_date: currentDueDate.toISOString().split("T")[0],
+            payment_method: "Auto",
+            notes: `Automatically created from recurring transaction`,
+          });
+
+          // Move to next due date
+          currentDueDate = calculateNextDueDate(currentDueDate, recurring.frequency);
         }
 
-        // Calculate next due date
-        const currentDueDate = new Date(recurring.next_due_date);
-        const nextDueDate = calculateNextDueDate(currentDueDate, recurring.frequency);
+        // Insert all missed transactions
+        if (transactionsToCreate.length > 0) {
+          const { error: insertError } = await supabase
+            .from("transactions")
+            .insert(transactionsToCreate);
 
-        // Update the recurring transaction with new next_due_date and last_processed
-        const { error: updateError } = await supabase
-          .from("recurring_transactions")
-          .update({
-            next_due_date: nextDueDate.toISOString().split("T")[0],
-            last_processed: todayIST,
-          })
-          .eq("id", recurring.id);
+          if (insertError) {
+            console.error(`❌ Failed to create transactions for ${recurring.description}:`, insertError);
+            failCount++;
+            continue;
+          }
 
-        if (updateError) {
-          console.error(`⚠️ Warning: Failed to update recurring transaction ${recurring.id}:`, updateError);
+          // Update the recurring transaction with new next_due_date
+          const { error: updateError } = await supabase
+            .from("recurring_transactions")
+            .update({
+              next_due_date: currentDueDate.toISOString().split("T")[0],
+              last_processed: todayIST,
+            })
+            .eq("id", recurring.id);
+
+          if (updateError) {
+            console.error(`⚠️ Warning: Failed to update recurring transaction ${recurring.id}:`, updateError);
+          }
+
+          processedIds.push(recurring.id);
+          successCount += transactionsToCreate.length;
+          console.log(
+            `✅ Processed: ${recurring.description} - Created ${transactionsToCreate.length} transaction(s)`
+          );
         }
-
-        processedIds.push(recurring.id);
-        successCount++;
-        console.log(
-          `✅ Processed: ${recurring.description} (${recurring.type}) - ₹${recurring.amount}`
-        );
       } catch (error) {
         console.error(`❌ Error processing recurring transaction ${recurring.id}:`, error);
         failCount++;

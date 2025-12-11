@@ -10,7 +10,6 @@ import {
   Repeat,
   Target,
   LogOut,
-  PieChart,
 } from "lucide-react";
 
 const Navbar = ({ onNavigate, currentPage }) => {
@@ -49,16 +48,6 @@ const Navbar = ({ onNavigate, currentPage }) => {
                 }`}
               >
                 Dashboard
-              </button>
-              <button
-                onClick={() => onNavigate && onNavigate("portfolio")}
-                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                  isActive("portfolio")
-                    ? "bg-teal-100 dark:bg-indigo-900 text-teal-700 dark:text-indigo-300"
-                    : "hover:bg-teal-50 dark:hover:bg-gray-700 text-teal-600 dark:text-gray-300"
-                }`}
-              >
-                Portfolio
               </button>
               <button
                 onClick={() => onNavigate && onNavigate("transactions")}
@@ -234,20 +223,6 @@ const Navbar = ({ onNavigate, currentPage }) => {
             >
               <LayoutDashboard className="w-5 h-5" />
               Dashboard
-            </button>
-            <button
-              onClick={() => {
-                onNavigate && onNavigate("portfolio");
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full text-left px-4 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${
-                isActive("portfolio")
-                  ? "bg-teal-100 dark:bg-indigo-900 text-teal-700 dark:text-indigo-300"
-                  : "hover:bg-teal-50 dark:hover:bg-gray-700 text-teal-600 dark:text-gray-300"
-              }`}
-            >
-              <PieChart className="w-5 h-5" />
-              Portfolio
             </button>
             <button
               onClick={() => {

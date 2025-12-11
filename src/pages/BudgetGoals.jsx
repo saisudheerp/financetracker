@@ -3,8 +3,10 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { formatCurrency } from "../utils/currencyUtils";
 import Navbar from "../components/Navbar";
+import SimpleNotificationPrompt from "../components/SimpleNotificationPrompt";
 import { Target, AlertTriangle, Folder } from "lucide-react";
 import { renderIcon } from "../utils/iconMapper.jsx";
+import { notifyBudgetAlert } from "../utils/notificationUtils";
 
 export default function BudgetGoals({ onNavigate }) {
   const { user } = useAuth();
@@ -39,6 +41,8 @@ export default function BudgetGoals({ onNavigate }) {
         () => {
           // Refetch transactions when any change occurs
           fetchTransactions();
+          // Check budgets and send notifications after transaction update
+          setTimeout(() => checkBudgetAlerts(), 1000);
         }
       )
       .subscribe();
@@ -220,6 +224,22 @@ export default function BudgetGoals({ onNavigate }) {
     return "bg-green-500";
   };
 
+  // Check budgets and send notifications for alerts
+  const checkBudgetAlerts = () => {
+    budgets.forEach((budget) => {
+      const spent = getSpentAmount(budget.category_id);
+      const percentage = getSpentPercentage(spent, budget.amount);
+      const categoryName = budget.categories?.name || "Unknown";
+
+      // Notify if exceeded (>100%) or high usage (>=90%)
+      if (percentage >= 100) {
+        notifyBudgetAlert(categoryName, percentage, true);
+      } else if (percentage >= 90) {
+        notifyBudgetAlert(categoryName, percentage, false);
+      }
+    });
+  };
+
   const getTotalBudget = () => budgets.reduce((sum, b) => sum + b.amount, 0);
   const getTotalSpent = () => {
     return budgets.reduce((sum, budget) => {
@@ -268,6 +288,9 @@ export default function BudgetGoals({ onNavigate }) {
             </button>
           </div>
         </div>
+
+        {/* Notification Prompt */}
+        <SimpleNotificationPrompt />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

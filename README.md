@@ -1,6 +1,6 @@
 # 💰 SpendsIn - Smart Personal Finance Tracker
 
-A beautiful, modern finance tracking application built with React 19, Supabase, and Tailwind CSS v4. Track your income, expenses, savings, budgets, and recurring transactions in Indian Rupees (₹) with real-time synchronization and stunning animated icons!
+A beautiful, modern finance tracking application built with React 19, Supabase, and Tailwind CSS v4. Track your income, expenses, savings, budgets, and recurring transactions in Indian Rupees (₹) with real-time synchronization, browser notifications, and stunning animated icons!
 
 ## ✨ Features
 
@@ -11,7 +11,7 @@ A beautiful, modern finance tracking application built with React 19, Supabase, 
   - Voice input support for hands-free entry
   - Smart category detection and suggestions
   - Witty, personalized responses
-- **AI Financial Query Assistant** - Ask questions about your spending and get instant insights 🆕
+- **AI Financial Query Assistant** - Ask questions about your spending and get instant insights
 
   - Ask anything about your finances: "What's my total income this month?"
   - Detailed spending analysis: "How much did I spend on food last month?"
@@ -39,46 +39,13 @@ A beautiful, modern finance tracking application built with React 19, Supabase, 
 - 🕐 **Indian Standard Time (IST)** - Dates in Asia/Kolkata timezone
 - 🏷️ **Smart Categories** - 15+ default categories + unlimited custom categories
 - � **Multiple Payment Methods** - UPI, Cash, Debit Card, Credit Card, Bank Transfer, Net Banking
-- 🌙 **Dark Mode** - Beautiful dark theme with localStorage persistence
+- 🌙 **Dark Mode** - Beautiful dark theme with localStorage persistence (defaults to light mode)
 - 📱 **Fully Responsive** - Mobile-first design with optimized navigation
 - 📥 **CSV Export** - Export transactions by month, date range, or type
 - � **Secure Authentication** - Email/password auth with row-level security
-- ⚡ **Performance Optimized** - Code splitting, minification, and lazy loading
+- ⚡ **Performance Optimized** - Code splitting, minification, lazy loading, and Vercel Speed Insights
 
 ### 🏦 Advanced Features
-
-- 📊 **Portfolio Tracker** - Track stocks and mutual funds with live prices 🆕
-
-  - **Stock Tracking** - NSE/BSE Indian stocks with real-time prices
-  - **Mutual Fund Tracking** - Track mutual funds with daily NAV updates
-  - **Live Price Updates** - Real-time pricing from Yahoo Finance and MFAPI.in
-  - **3 Interactive Charts:**
-    - Portfolio Growth Line Chart (7-day trend)
-    - Sector Allocation Pie Chart (color-coded breakdown)
-    - Gain/Loss Bar Chart (per-holding performance)
-  - **CSV Import/Export** - Bulk upload/download portfolio holdings
-  - **Price Alerts** - Automated alerts for ±5% price changes
-  - **Popular Stocks** - Quick add from 15+ popular Indian stocks (Reliance, TCS, HDFC Bank, etc.)
-  - **Search Functionality** - Search for stocks and mutual funds
-  - **Portfolio Analytics:**
-    - Total Invested Amount
-    - Current Portfolio Value
-    - Total Gain/Loss (₹ and %)
-    - Today's Change
-    - Sector-wise allocation
-  - **Mobile Responsive** - Full portfolio management on any device
-
-  **Supported Assets:**
-
-  - NSE Stocks (symbol format: `RELIANCE.NS`)
-  - BSE Stocks (symbol format: `TCS.BO`)
-  - Mutual Funds (scheme codes from MFAPI.in)
-
-  **API Sources:**
-
-  - Yahoo Finance API (free tier) for stock prices
-  - MFAPI.in for mutual fund NAVs
-  - Real-time price caching in Supabase
 
 - 🎯 **Budget Goals** - Set category-based budget limits with real-time tracking
   - Visual progress bars with color-coded warnings
@@ -95,10 +62,13 @@ A beautiful, modern finance tracking application built with React 19, Supabase, 
 - 🔁 **Recurring Transactions** - Automate regular income and expenses
 
   - Flexible frequencies: Daily, Weekly, Monthly, Quarterly, Yearly
-  - Automatic processing every hour
+  - **Fully Automatic Processing** - Runs every hour via Supabase Edge Functions cron job
+  - **Catches Missed Days** - Creates transactions for all missed dates with correct dates
   - Pause/Resume functionality
+  - Real-time updates when transactions are auto-generated
   - Monthly recurring estimates on dashboard
   - Transaction history tracking
+  - **Works 24/7** - Processes even when the site is closed
 
 - 📊 **Monthly Savings Tracker** - Track monthly savings deposits separately
   - Deposit history with running totals
@@ -158,22 +128,6 @@ npm install
 - ✅ Real-time subscriptions for instant sync
 - ✅ 15 default categories with Lucide icon names
 - ✅ Helper functions and triggers
-
-#### Portfolio Tracker Setup (Optional - for Portfolio feature)
-
-If you want to use the **Portfolio Tracker** feature:
-
-1. Open `PORTFOLIO_SETUP.sql` from the `SQL Scripts` folder
-2. Copy the entire file contents
-3. Paste into Supabase SQL Editor
-4. Click **Run**
-5. This creates 4 new tables:
-   - `portfolio_holdings` - Your stock/mutual fund holdings
-   - `portfolio_prices` - Price cache for faster loading
-   - `portfolio_history` - Daily portfolio snapshots
-   - `portfolio_alerts` - Price change notifications
-
-**Note:** Portfolio Tracker requires additional setup for live price updates. See Portfolio section in this README.
 
 ### 3️⃣ Environment Configuration
 
@@ -244,18 +198,6 @@ The `SIMPLE_SETUP.sql` file includes:
 - Optimized indexes for better performance
 - Real-time subscription setup for instant sync
 
-The `PORTFOLIO_SETUP.sql` file (optional) includes:
-
-- Portfolio database schema (4 tables):
-  - `portfolio_holdings` - Stock and mutual fund holdings
-  - `portfolio_prices` - Price cache for performance
-  - `portfolio_history` - Daily portfolio snapshots
-  - `portfolio_alerts` - Price change notifications (±5%)
-- Row Level Security (RLS) for portfolio data
-- Indexes for fast price lookups
-- Helper functions for automatic timestamp updates
-- Snapshot recording triggers
-
 ## 🎯 Tech Stack
 
 ### Frontend
@@ -264,6 +206,8 @@ The `PORTFOLIO_SETUP.sql` file (optional) includes:
 - **Vite 7** - Lightning-fast build tool with HMR
 - **Tailwind CSS v4** - Utility-first CSS with CSS variables
 - **Lucide React** - Beautiful animated SVG icons (546 icons)
+- **Recharts** - Composable charting library for analytics
+- **Vercel Speed Insights** - Real-time performance monitoring
 - **Recharts** - Composable charting library for analytics
 
 ### Backend
@@ -362,19 +306,22 @@ spendsin/
 ├── src/
 │   ├── components/
 │   │   ├── AddTransactionModal.jsx    # Transaction form with icon animations
-│   │   ├── AddHoldingModal.jsx        # Portfolio holding form 🆕
-│   │   ├── PortfolioCharts.jsx        # Portfolio charts (3 types) 🆕
+│   │   ├── NotificationSettings.jsx   # First-time notification banner
+│   │   ├── SimpleNotificationPrompt.jsx # Budget/Savings notification prompt
+│   │   ├── AIAssistant.jsx            # AI chat interface
+│   │   ├── VoiceTransactionModal.jsx  # Voice input for transactions
 │   │   ├── Navbar.jsx                 # Navigation with dropdown menu
+│   │   ├── Toast.jsx                  # Toast notification component
 │   │   └── ProtectedRoute.jsx         # Auth guard component
 │   ├── context/
 │   │   ├── AuthContext.jsx            # Authentication state management
-│   │   └── ThemeContext.jsx           # Dark/light mode state
+│   │   ├── ThemeContext.jsx           # Dark/light mode state
+│   │   └── ToastContext.jsx           # Toast notification state
 │   ├── pages/
 │   │   ├── Dashboard.jsx              # Main overview with stats & charts
 │   │   ├── Transactions.jsx           # Transaction list with filters
 │   │   ├── Analytics.jsx              # Charts and insights
 │   │   ├── Categories.jsx             # Category management with icon picker
-│   │   ├── Portfolio.jsx              # Stock & mutual fund tracker 🆕
 │   │   ├── Savings.jsx                # Lifetime savings goals
 │   │   ├── MonthlySavings.jsx         # Monthly savings deposits tracker
 │   │   ├── RecurringTransactions.jsx  # Recurring income/expenses
@@ -383,12 +330,11 @@ spendsin/
 │   │   └── ResetPassword.jsx          # Password reset flow
 │   ├── utils/
 │   │   ├── iconMapper.jsx             # Lucide icon mapping utility
-│   │   ├── portfolioService.js        # Stock/MF API integrations 🆕
+│   │   ├── notificationUtils.js       # Browser notification functions
+│   │   ├── geminiService.js           # Google Gemini AI integration
 │   │   ├── currencyUtils.js           # INR formatting functions
 │   │   ├── authUtils.js               # Auth helpers
 │   │   └── exportUtils.js             # CSV export functions
-│   ├── config/
-│   │   └── portfolioConfig.js         # Portfolio API configuration 🆕
 │   ├── App.jsx                        # Main app component with routing
 │   ├── main.jsx                       # React entry point
 │   ├── supabaseClient.js              # Supabase initialization
@@ -399,7 +345,6 @@ spendsin/
 ├── dist/                              # Production build output
 ├── SQL Scripts/
 │   ├── SIMPLE_SETUP.sql               # Complete database setup
-│   ├── PORTFOLIO_SETUP.sql            # Portfolio tracker setup 🆕
 │   ├── ICON_MIGRATION.sql             # Icon migration script
 │   ├── SAVINGS_DEPOSITS_SETUP.sql     # Monthly savings setup
 │   └── MONTHLY_SAVINGS_SETUP.sql      # Alternative savings setup
@@ -441,6 +386,12 @@ spendsin/
 - [x] **Icon System** - Lucide React animated icons throughout ✨
 - [x] **Performance Optimization** - Code splitting, minification ✨
 - [x] **SEO Optimization** - Meta tags, robots.txt ✨
+- [x] **AI Transaction Assistant** - Natural language transaction entry 🤖
+- [x] **AI Financial Query Assistant** - Ask questions about your finances 🤖
+- [x] **Voice Input** - Voice-to-text transaction entry 🎙️
+- [x] **Browser Notifications** - Smart alerts for budgets, savings, and auto-transactions 🔔
+- [x] **Vercel Speed Insights** - Real-time performance monitoring ⚡
+- [x] **Automatic Recurring Transactions** - 24/7 processing with missed-day catch-up 🔁
 
 ### 🔮 Planned Features
 
@@ -462,6 +413,54 @@ spendsin/
 ### 💡 Feature Requests
 
 Have an idea? Open an issue on GitHub with the label "feature-request"!
+
+## 🔔 Browser Notifications Guide
+
+### How It Works
+
+SpendsIn uses browser notifications to keep you updated on important financial events. Here's everything you need to know:
+
+### First-Time Setup
+
+When you first log in, you'll see an attractive banner:
+
+- **Message:** "🎯 Never Miss Your Money Moves!"
+- **Options:** "Yes, Keep Me Updated!" or "Maybe Later"
+- **One-time:** The banner disappears forever after you make a choice
+
+### If You Enable Notifications
+
+You'll receive smart alerts for:
+
+- 💸 **New Transactions** - "Cha-Ching! ₹5,000 - Freelance Work"
+- 🔁 **Auto-Transactions** - "Auto-Magic Money! ₹50,000 - Monthly Salary added automatically!"
+- 🚨 **Budget Warnings** - "Whoa There, Big Spender! Your Food budget just exploded by 120%!"
+- 🎉 **Savings Achievements** - "BOOM! Goal Crushed! Vacation Fund complete! ₹1,00,000 secured!"
+- 🎯 **Progress Milestones** - "Sprint to the Finish! House Fund: 85%! Don't stop now, champ!"
+
+### If You Dismiss the Banner
+
+- No worries! You'll see a small, subtle prompt on Budget and Savings pages
+- Message: "🎯 Get alerts! Never miss budget warnings or savings wins."
+- One-click enable anytime
+
+### Notification Behavior
+
+- **Auto-dismiss:** Notifications disappear after 5 seconds
+- **Non-intrusive:** Won't interrupt your workflow
+- **Random messages:** Each notification type has 4-7 funny/motivational variations
+- **Works everywhere:** Desktop, mobile, even when the site is closed (for recurring transactions)
+
+### How to Enable/Disable Later
+
+**To Enable:**
+
+- Click the notification prompt on Budget/Savings pages
+- Or check your browser settings: Site Settings → Notifications
+
+**To Disable:**
+
+- Browser Settings → Site Settings → Notifications → Block
 
 ## 🤝 Contributing
 

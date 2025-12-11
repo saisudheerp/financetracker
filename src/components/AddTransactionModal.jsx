@@ -13,6 +13,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { getIconComponent } from "../utils/iconMapper.jsx";
+import { notifyTransaction } from "../utils/notificationUtils";
 
 const AddTransactionModal = ({ isOpen, onClose, onTransactionAdded }) => {
   const { user } = useAuth();
@@ -146,6 +147,13 @@ const AddTransactionModal = ({ isOpen, onClose, onTransactionAdded }) => {
         ]);
 
       if (insertError) throw insertError;
+
+      // Show browser notification
+      notifyTransaction({
+        type: formData.type,
+        amount: parseFloat(formData.amount),
+        description: formData.description.trim() || "Transaction",
+      });
 
       // Reset form
       setFormData({

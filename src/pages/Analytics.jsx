@@ -221,27 +221,30 @@ const Analytics = ({ onNavigate }) => {
   }, [filteredTransactions]);
 
   // Calculate statistics - memoized
-  const { totalIncome, totalExpenses, averageIncome, averageExpense } = useMemo(() => {
-    const totalIncome = filteredTransactions
-      .filter((t) => t.type === "income")
-      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const { totalIncome, totalExpenses, averageIncome, averageExpense } =
+    useMemo(() => {
+      const totalIncome = filteredTransactions
+        .filter((t) => t.type === "income")
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-    const totalExpenses = filteredTransactions
-      .filter((t) => t.type === "expense")
-      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      const totalExpenses = filteredTransactions
+        .filter((t) => t.type === "expense")
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-    const averageIncome =
-      monthlyData.length > 0
-        ? monthlyData.reduce((sum, m) => sum + m.income, 0) / monthlyData.length
-        : 0;
+      const averageIncome =
+        monthlyData.length > 0
+          ? monthlyData.reduce((sum, m) => sum + m.income, 0) /
+            monthlyData.length
+          : 0;
 
-    const averageExpense =
-      monthlyData.length > 0
-        ? monthlyData.reduce((sum, m) => sum + m.expense, 0) / monthlyData.length
-        : 0;
+      const averageExpense =
+        monthlyData.length > 0
+          ? monthlyData.reduce((sum, m) => sum + m.expense, 0) /
+            monthlyData.length
+          : 0;
 
-    return { totalIncome, totalExpenses, averageIncome, averageExpense };
-  }, [filteredTransactions, monthlyData]);
+      return { totalIncome, totalExpenses, averageIncome, averageExpense };
+    }, [filteredTransactions, monthlyData]);
 
   // Custom tooltip for charts
   const CustomTooltip = ({ active, payload, label }) => {

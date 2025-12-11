@@ -4,7 +4,12 @@ import { useAuth } from "../context/AuthContext";
 import { formatCurrency } from "../utils/currencyUtils";
 import Navbar from "../components/Navbar";
 import AIAssistant from "../components/AIAssistant";
+import SimpleNotificationPrompt from "../components/SimpleNotificationPrompt";
 import { Wallet, PartyPopper, Bot } from "lucide-react";
+import {
+  notifySavingsGoalAchieved,
+  notifySavingsProgress,
+} from "../utils/notificationUtils";
 
 export default function Savings({ onNavigate }) {
   const { user } = useAuth();
@@ -116,6 +121,25 @@ export default function Savings({ onNavigate }) {
 
       if (updateError) throw updateError;
 
+      // Check for achievements and send notifications
+      const newPercentage =
+        (updatedAmount / parseFloat(goal.target_amount)) * 100;
+
+      // Goal achieved notification
+      if (
+        updatedAmount >= parseFloat(goal.target_amount) &&
+        oldAmount < parseFloat(goal.target_amount)
+      ) {
+        notifySavingsGoalAchieved(goal.goal_name, goal.target_amount);
+      }
+      // Progress milestone notification (75%, 90%)
+      else if (
+        newPercentage >= 75 &&
+        (oldAmount / parseFloat(goal.target_amount)) * 100 < 75
+      ) {
+        notifySavingsProgress(goal.goal_name, newPercentage);
+      }
+
       // If money was added, record the deposit
       if (depositAmount > 0) {
         const { error: depositError } = await supabase
@@ -205,6 +229,9 @@ export default function Savings({ onNavigate }) {
             + Add Savings Goal
           </button>
         </div>
+
+        {/* Notification Prompt */}
+        <SimpleNotificationPrompt />
 
         {/* Savings Goals Grid */}
         {loading ? (

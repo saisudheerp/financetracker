@@ -5,6 +5,7 @@ import { supabase } from "../supabaseClient";
 import Navbar from "../components/Navbar";
 import AddTransactionModal from "../components/AddTransactionModal";
 import AIAssistant from "../components/AIAssistant";
+import NotificationSettings from "../components/NotificationSettings";
 import {
   formatINR,
   getCurrentMonth,
@@ -1276,6 +1277,9 @@ const Dashboard = ({ onNavigate }) => {
           </div>
         </div>
       </footer>
+
+      {/* Notification Settings */}
+      <NotificationSettings />
     </div>
   );
 };

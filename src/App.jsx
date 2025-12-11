@@ -5,6 +5,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { useToast } from "./context/ToastContext";
 import { supabase } from "./supabaseClient";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { requestNotificationPermission } from "./utils/notificationUtils";
 
 // Lazy load all page components
 const Login = lazy(() => import("./pages/Login"));
@@ -13,7 +14,6 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Transactions = lazy(() => import("./pages/Transactions"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Categories = lazy(() => import("./pages/Categories"));
-const Portfolio = lazy(() => import("./pages/Portfolio"));
 const Savings = lazy(() => import("./pages/Savings"));
 const RecurringTransactions = lazy(() =>
   import("./pages/RecurringTransactions")
@@ -40,6 +40,11 @@ function AppContent() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
+    // Request notification permission when user logs in
+    if (user) {
+      requestNotificationPermission();
+    }
+
     // Listen for auth state changes (including password recovery and email confirmation)
     const {
       data: { subscription },
@@ -103,9 +108,6 @@ function AppContent() {
           )}
           {currentPage === "categories" && (
             <Categories onNavigate={setCurrentPage} />
-          )}
-          {currentPage === "portfolio" && (
-            <Portfolio onNavigate={setCurrentPage} />
           )}
           {currentPage === "savings" && <Savings onNavigate={setCurrentPage} />}
           {currentPage === "recurring" && (
